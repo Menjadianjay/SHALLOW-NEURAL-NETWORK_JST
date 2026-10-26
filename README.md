@@ -2,7 +2,6 @@
 
 <div align="center">
 
-![Python](https://img.shields.io/badge/Python-3.8%2B-blue?logo=python&logoColor=white)
 ![NumPy](https://img.shields.io/badge/NumPy-Scientific_Computing-orange?logo=numpy)
 ![Jupyter](https://img.shields.io/badge/Jupyter-Notebook-F37626?logo=jupyter&logoColor=white)
 ![Accuracy](https://img.shields.io/badge/Test_Accuracy-96.53%25-brightgreen)
@@ -10,30 +9,28 @@
 
 **Implementasi Shallow Neural Network dari Scratch untuk Klasifikasi Digit Tulisan Tangan**
 
-*Ujian Tengah Semester — Mata Kuliah Jaringan Syaraf Tiruan (JST) Kelas B*
-
-**Nama:** Joseph Seri Aprillio De Ornay | **NIM:** 225314118
-
 </div>
 
 ---
 
 ## Daftar Isi
 
-- [Gambaran Umum](#-gambaran-umum)
-- [Arsitektur Shallow Neural Network](#-arsitektur-shallow-neural-network)
-- [Cara Kerja: Tahapan Lengkap](#️-cara-kerja-tahapan-lengkap)
+- [Gambaran Umum](#gambaran-umum)
+- [Arsitektur Shallow Neural Network](#arsitektur-shallow-neural-network)
+- [Cara Kerja: Tahapan Lengkap](#cara-kerja-tahapan-lengkap)
   - [1. Persiapan Data](#1-persiapan-data)
   - [2. Inisialisasi Parameter](#2-inisialisasi-parameter)
   - [3. Forward Propagation](#3-forward-propagation)
   - [4. Fungsi Cost](#4-fungsi-cost)
   - [5. Backward Propagation](#5-backward-propagation)
   - [6. Update Parameter](#6-update-parameter)
-- [Matematika di Balik SNN](#-matematika-di-balik-snn)
-- [Hasil Eksperimen](#-hasil-eksperimen)
-- [Struktur Proyek](#-struktur-proyek)
-- [Instalasi & Cara Menjalankan](#-instalasi--cara-menjalankan)
-- [Referensi](#-referensi)
+- [Matematika di Balik SNN](#matematika-di-balik-snn)
+- [Hasil Eksperimen](#hasil-eksperimen)
+- [Struktur Proyek](#struktur-proyek)
+- [Instalasi & Cara Menjalankan](#instalasi--cara-menjalankan)
+- [Pengujian](#pengujian)
+- [Lisensi](#lisensi)
+- [Referensi](#referensi)
 
 ---
 
@@ -223,7 +220,7 @@ Di mana:
 - `A2` = output softmax (prediksi)
 - `ε = 1e-8` = epsilon untuk stabilitas numerik
 
-> Loss dimulai sekitar **2.303** (mendekati log(10) — sangat acak) dan turun hingga ~**0.098** setelah 1000 iterasi.
+> Loss dimulai sekitar **2.303** (mendekati log(10) — sangat acak) dan turun menjadi ~**0.098** pada iterasi ke-900, nilai terakhir yang dicetak notebook (pencetakan setiap 100 iterasi; training berjalan 1000 iterasi).
 
 ---
 
@@ -304,17 +301,19 @@ Di mana `α = 0.5` adalah *learning rate* (kecepatan pembaruan bobot).
 
 ```python
 def model(X, Y, n_h, iterasi=1000, learning_rate=0.5, print_cost=False):
+    np.random.seed(3)   # catatan: initialize_parameters() langsung menimpanya dengan seed 2
     n_x, n_y = X.shape[0], Y.shape[0]
     parameters = initialize_parameters(n_x, n_h, n_y)
     costs = []
 
     for i in range(iterasi):
-        A2, cache    = forward_propagation(X, parameters)          # Step 1: Prediksi
-        cost         = compute_cost(A2, Y)                          # Step 2: Hitung Loss
-        grads        = backward_propagation(parameters, cache, X, Y)# Step 3: Gradien
-        parameters   = update_parameters(parameters, grads, lr)    # Step 4: Update
+        A2, cache    = forward_propagation(X, parameters)                    # Step 1: Prediksi
+        cost         = compute_cost(A2, Y)                                    # Step 2: Hitung Loss
+        grads        = backward_propagation(parameters, cache, X, Y)          # Step 3: Gradien
+        parameters   = update_parameters(parameters, grads, learning_rate)    # Step 4: Update
 
         if print_cost and i % 100 == 0:
+            print(f"Cost after iteration {i}: {cost}")
             costs.append(cost)
 
     return parameters, costs
@@ -422,20 +421,25 @@ L = -(1/m) Σᵢ Σⱼ Yⱼᵢ · log(A²ⱼᵢ + ε)
 
 ```
 SHALLOW-NEURAL-NETWORK_JST/
-│
-└── UTS_225314118.ipynb         ← Notebook utama
-    │
-    ├── Import Library         numpy, sklearn, matplotlib
-    ├── Load & Eksplorasi Data  MNIST 70.000 gambar (784 fitur)
-    ├── Split & Preprocessing   Normalisasi + One-Hot Encoding
-    ├── initialize_parameters() Inisialisasi W1, b1, W2, b2
-    ├── forward_propagation()   ReLU (hidden) + Softmax (output)
-    ├── compute_cost()          Cross-Entropy Loss
-    ├── backward_propagation()  Gradien via Chain Rule
-    ├── update_parameters()     Gradient Descent
-    ├── model()                 Training Loop (1000 iterasi)
-    ├── predict()               Prediksi dengan argmax
-    └── Visualisasi             Contoh prediksi + Confusion Matrix
+├── README.md
+├── UTS_225314118.ipynb         ← Notebook utama (seluruh kode)
+└── DATA_MNIST/MNIST/raw/       ← File MNIST mentah (idx + .gz, ≈ 66 MB); TIDAK dibaca notebook
+```
+
+Notebook memuat data lewat `fetch_openml`, bukan dari folder `DATA_MNIST/`. Sebagai pengecekan, kode notebook yang sama dijalankan ulang dengan data dari `DATA_MNIST/` (gambar train lalu test, digabung, split `random_state=42`) dan menghasilkan angka identik: Train 97.52%, Test 96.53%, serta cost dan classification report yang sama. Isi notebook (`UTS_225314118.ipynb`) berurutan sebagai berikut:
+
+```
+Import Library          numpy, sklearn, matplotlib
+Load & Eksplorasi Data  MNIST 70.000 gambar (784 fitur)
+Split & Preprocessing   Normalisasi + One-Hot Encoding
+initialize_parameters() Inisialisasi W1, b1, W2, b2
+forward_propagation()   ReLU (hidden) + Softmax (output)
+compute_cost()          Cross-Entropy Loss
+backward_propagation()  Gradien via Chain Rule
+update_parameters()     Gradient Descent
+model()                 Training Loop (1000 iterasi)
+predict()               Prediksi dengan argmax
+Visualisasi             Contoh prediksi + Confusion Matrix
 ```
 
 ---
@@ -444,9 +448,15 @@ SHALLOW-NEURAL-NETWORK_JST/
 
 ### Prasyarat
 
+- Python 3. Notebook tersimpan dari Python 3.13.2; versi minimum tidak dinyatakan di repositori. `OneHotEncoder(sparse_output=...)` membutuhkan scikit-learn 1.2 atau lebih baru.
+- Koneksi internet saat pertama kali menjalankan: `fetch_openml('mnist_784')` mengunduh dataset dari OpenML (lalu disimpan di cache scikit-learn).
+- `pandas` wajib ada: `fetch_openml` mengembalikan DataFrame untuk data ini dan scikit-learn akan error jika pandas tidak terpasang (diperiksa dari kode scikit-learn 1.9.1; belum dijalankan terhadap OpenML).
+
 ```bash
-pip install numpy scikit-learn matplotlib jupyter
+pip install numpy pandas scikit-learn matplotlib jupyter
 ```
+
+Repositori tidak memiliki `requirements.txt`, sehingga versi paket tidak dikunci.
 
 ### Menjalankan Notebook
 
@@ -466,7 +476,19 @@ jupyter notebook UTS_225314118.ipynb
 | `n_h` | 128 | Jumlah neuron di hidden layer |
 | `iterasi` | 1000 | Jumlah epoch training |
 | `learning_rate` | 0.5 | Kecepatan pembaruan bobot |
-| `random_seed` | 3 | Untuk reproduktibilitas hasil |
+| `random_seed` | 2 | Seed yang efektif untuk bobot awal. `model()` memanggil `np.random.seed(3)`, tetapi `initialize_parameters()` langsung menimpanya dengan `np.random.seed(2)` |
+
+Pembagian data memakai `random_state=42`. Seluruh angka pada bagian Hasil Eksperimen diambil dari output yang tersimpan di notebook; training penuh (1000 iterasi pada 56.000 gambar) berjalan di CPU; pada satu kali uji di mesin 2-core tanpa GPU memakan sekitar 9 menit (562 detik).
+
+---
+
+## Pengujian
+
+Tidak ada tes otomatis maupun konfigurasi CI di repositori ini. Cara memeriksa hasil adalah menjalankan seluruh sel notebook dan membandingkan Train/Test Accuracy dengan nilai pada bagian Hasil Eksperimen.
+
+## Lisensi
+
+Repositori ini tidak memiliki file lisensi, sehingga tidak ada lisensi yang diberikan secara default. Pemilik repositori perlu memilih dan menambahkannya. Dataset MNIST memiliki ketentuan penggunaannya sendiri (lihat referensi di bawah).
 
 ---
 
